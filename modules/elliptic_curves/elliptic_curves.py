@@ -1,5 +1,5 @@
 # [[file:../README.org::*Class elliptic_curve][Class elliptic_curve:1]]
-import MTH4021.abelian_groups as ab
+import abelian_groups as ab
 
 class elliptic_curve(ab.abstract_abelian_group):
     """An elliptic curve."""
