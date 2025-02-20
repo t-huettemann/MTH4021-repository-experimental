@@ -7,6 +7,6 @@ setup(
     author="Thomas Huettemann",
     author_email='t.huettemann@qub.ac.uk',
     python_requires='>=3.7',
-    packages = ["MTH4021"]
+    packages = ["MTH4021"],
     install_requires=['gmpy2', 'primefac']
 )
