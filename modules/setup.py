@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='MTH4021'
+    name='MTH4021',
     version='0.1.0',
     description="Various Python modules for use with MTH4021",
     author="Thomas Huettemann",
