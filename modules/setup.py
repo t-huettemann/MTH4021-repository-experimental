@@ -7,6 +7,6 @@ setup(
     author="Thomas Huettemann",
     author_email='t.huettemann@qub.ac.uk',
     python_requires='>=3.7',
-    py_modules=["rings_and_fields", "abelian_groups", "elliptic_curves"],
+    packages = ["rings_and_fields", "abelian_groups", "elliptic_curves"],
     install_requires=['gmpy2', 'primefac']
 )
