@@ -6,7 +6,7 @@ import itertools
 import primefac as pf
 
 class ring:
-    """This is the base class for a ring. This class contains no data, but defines a setup method that should be called by subclasses during initialisation."""
+    """This is the base class for a (commutative) ring. This class contains no data, but defines a setup method that should be called by subclasses during initialisation."""
 
     def __init__(self):
         self.element = globals()[self.__class__.__name__ + '_element']
@@ -59,6 +59,9 @@ class ring:
         if isinstance(args[0], self.element):
             return args[0]
         return self.element(*args, self)
+
+    def __pow__ (self, x, k):
+        return self.power(x, k)
 
 
 class ring_element:
@@ -136,6 +139,9 @@ class ring_element:
     def __imul__(self, b):
         return self.mult(b)
 
+    def __pow__(self, k):
+        return self.ring(self.ring.power(self.value, k))
+
     def __hash__(self):
         return hash(self.__repr__())
 
@@ -145,6 +151,7 @@ class ring_element:
     def _print_abs(self):
         return str(self)
 
+    
 class Z(ring):
     def __init__(self):
         # self.modulus = mpz(0)
