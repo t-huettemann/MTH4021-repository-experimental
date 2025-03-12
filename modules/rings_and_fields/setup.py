@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='rings_and_fields',
-    version='0.1.1',
+    version='0.1.2',
     description="Various Python modules for use with MTH4021",
     author="Thomas Huettemann",
     author_email='t.huettemann@qub.ac.uk',

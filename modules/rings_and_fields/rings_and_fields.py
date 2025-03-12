@@ -11,6 +11,9 @@ class ring:
     def __init__(self):
         self.element = globals()[self.__class__.__name__ + '_element']
 
+    def latex_details(self):
+        return self.latex()
+
     def zero(self):
         return self.element(0, self)
 
@@ -84,9 +87,8 @@ class ring_element:
         return self.__class__(self.ring.add(self.value, b.value), self.ring)
 
     def sub(self, b):
-        # need to implement type checking for b
         if (self.ring != b.ring):
-            print("Subtraction: Arguments must lie in same ring")
+            print("Subtraction: Summands must lie in same ring")
             raise
         return self.__class__(self.ring.sub(self.value, b.value), self.ring)
 
@@ -100,6 +102,9 @@ class ring_element:
     def is_zero(self):
         return self.ring.is_zero(self.value)
 
+    def is_nonzero(self):
+        return not self.ring.is_zero(self.value)
+
     def is_one(self):
         return self.__repr__() == self.ring.one().__repr__()
 
@@ -110,16 +115,87 @@ class ring_element:
         return self.ring(self.ring.power(self.value, k))
 
     def __add__(self, b):      # overload "+"
-        return self.add(b)
+        if (isinstance(b, ring_element)):
+            if (self.ring != b.ring):
+                try:
+                    c = self.ring(b)
+                except:
+                    print("Addition: Summands must lie in same ring (could not typecast)")
+                    raise
+                return self.add(c)
+            else:
+                return self.add(b)
+        else:
+            try:
+                c = self.ring(b)
+            except:
+                print("Addition: Summands must lie in same ring (could not typecast)")
+                raise
+            return self.add(c)
+
+    def __radd__(self, b):      # overload "+"
+        if (isinstance(b, ring_element)):
+            if (self.ring != b.ring):
+                try:
+                    c = self.ring(b)
+                except:
+                    print("Addition: Summands must lie in same ring (could not typecast)")
+                    raise
+                return self.add(c)
+            else:
+                return self.add(b)
+        else:
+            try:
+                c = self.ring(b)
+            except:
+                print("Addition: Summands must lie in same ring (could not typecast)")
+                raise
+            return self.add(c)
 
     def __sub__(self, b):      # overload "-"
-        return self.sub(b)
+        if (isinstance(b, ring_element)):
+            if (self.ring != b.ring):
+                try:
+                    c = self.ring(b)
+                except:
+                    print("Subtraction: Summands must lie in same ring (could not typecast)")
+                    raise
+                return self.sub(c)
+            else:
+                return self.sub(b)
+        else:
+            try:
+                c = self.ring(b)
+            except:
+                print("Subtraction: Summands must lie in same ring (could not typecast)")
+                raise
+            return self.sub(c)
+        # return self.sub(b)
+
+    def __rsub__(self, b):      # overload "-"
+        if (isinstance(b, ring_element)):
+            if (self.ring != b.ring):
+                try:
+                    c = self.ring(b)
+                except:
+                    print("Subtraction: Summands must lie in same ring (could not typecast)")
+                    raise
+                return -self.sub(c)
+            else:
+                return -self.sub(b)
+        else:
+            try:
+                c = self.ring(b)
+            except:
+                print("Subtraction: Summands must lie in same ring (could not typecast)")
+                raise
+            return -self.sub(c)
 
     def __mul__(self, b):      # overload "*"
         return self.mult(self.ring(b))
 
     def __rmul__(self, b):      # overload "*"
-        return self.mult(self.ring(b))
+        return self.ring(b).mult(self)
 
     def __eq__(self, b):
         return self.__repr__() == b.__repr__()  # overload "=="
@@ -129,15 +205,6 @@ class ring_element:
 
     def __neg__(self):         # overload unary "-"
         return self.ring.zero().sub(self)
-
-    def __iadd__(self, b):
-        return self.add(b)
-
-    def __isub__(self, b):
-        return self.sub(b)
-
-    def __imul__(self, b):
-        return self.mult(b)
 
     def __pow__(self, k):
         return self.ring(self.ring.power(self.value, k))
@@ -165,6 +232,9 @@ class Z(ring):
 
     def __repr__(self):
         return self.__class__.__name__ + '()' #'(' + self.modulus.__repr__() + ')'
+
+    def latex(self):
+        return '\mathbb{Z}'
 
     def normalise(self, v):
         return mpz(v)
@@ -213,6 +283,7 @@ class Z_element(ring_element):
 
     def div(self, n):
         return self.ring(self.ring.div(self.value, n.value))
+
 class zmod(ring):
     def __init__(self, m):
         self.modulus = abs(mpz(m))
@@ -226,6 +297,9 @@ class zmod(ring):
 
     def __repr__(self):
         return self.__class__.__name__ + '(' + self.modulus.__repr__() + ')'
+
+    def latex(self):
+        return '\mathbb{Z}/' + str(self.modulus) + '\mathbb{Z}'
 
     def normalise(self, v):
         if isinstance(v, zmod_element):
@@ -251,6 +325,12 @@ class zmod(ring):
         """Return a random element."""
         return self(randbelow(self.modulus))
 
+    def random_nonzero_element(self):
+        """Return a random non-zero element."""
+        r = self(randbelow(self.modulus))
+        while r.is_zero():
+            r = self(randbelow(self.modulus))
+        return r
 
 class zmod_element(ring_element):
     # definition of an element in Z/n
@@ -337,6 +417,9 @@ class primefield(zmod, field):
     def __str__(self):
         return 'F_' + str(self.modulus)
 
+    def latex(self):
+        return '\mathbb{F}_{' + str(self.modulus) + '}'
+
     def div(self, a, b):
         return divm(a, b, self.modulus)
 
@@ -357,6 +440,9 @@ class Q(field):
 
     def __str__(self):
         return 'Q'
+
+    def latex(self):
+        return '\mathbb{Q}'
 
     def div(self, a, b):
         return(a/b)
@@ -396,6 +482,9 @@ class polynomialring(ring):
 
     def __repr__(self):
         return self.__class__.__name__ + '(' + self.basering.__repr__() + ', i=\'' + self.indeterminate + '\', parentheses=[\'' + self.parentheses[0] + '\', \'' + self.parentheses[1] + '\'])'
+
+    def latex(self):
+        return self.basering.latex() + '[{' + self.indeterminate + '}]'
 
     def normalise(self, v):
         # v is a list with coefficients, starting with degree 0; if it's a single element, turn into a list first
@@ -461,7 +550,6 @@ class polynomialring(ring):
                     pass
                 elif i == 0:
                     r.append(po + v[0]._print_abs() + pc)
-                    #r.append(v[0]._print_abs())
                     sgn.append(' ' + v[0]._print_sign() + ' ')
                 elif i == 1:
                     s = v[1]._print_abs()
@@ -483,29 +571,6 @@ class polynomialring(ring):
         elif rr[0] == " - ":
             rr[0] = "-"
         return "".join(rr)
-        #     for i in range(d, -1, -1):
-        #         if i == 0:
-        #             if v[0].is_zero():
-        #                 pass
-        #             else:
-        #                 r.append(po + v[0].__str__() + pc)
-        #         elif i == 1:
-        #             s = v[1].__str__()
-        #             if s == '0':
-        #                 pass
-        #             elif s == '1':
-        #                 r.append(self.indeterminate)
-        #             else:
-        #                 r.append(po + s + pc + self.indeterminate)
-        #         else:
-        #             s = v[i].__str__()
-        #             if s == '0':
-        #                 pass
-        #             elif s == '1':
-        #                 r.append(self.indeterminate + '^' + str(i))
-        #             else:
-        #                 r.append(po + s + pc + self.indeterminate + '^' + str(i))
-        # return " + ".join(r)
 
     def deg(self, p):
         q = self.normalise(p)
@@ -551,8 +616,11 @@ class polynomialring(ring):
 
     def mod(self, f, g):
         return self.div_mod(f,g)[1]
-    
-    
+
+    def x(self):
+        return self([0,1])
+
+
 class polynomialring_element(ring_element):
     # using generic methods mostly!
 
@@ -698,19 +766,20 @@ class polynomialring_over_field_element(polynomialring_element):
         q = F.cardinality
         n = self.deg()
 
-        def compute(e):
+        def compute(e): # this computes x^e - x  mod self
             r = P.one()
-            b = P([0,1])
+            b = P.x()
             for i in reversed(e.digits(2)):
                 if i == '1':
                     r = r*b
                 b = b*b
                 if b.deg() > n:
                     b = b % self
-            return r-P([0,1])
+            return r-P.x()
         
         # Step 1: The "other" checks
         one = P.one()
+        x = P.x()
         h = [int(n/d) for d in [*set(pf.primefac(n))]]
         for nn in h:
             p = compute(q**nn)
@@ -721,28 +790,6 @@ class polynomialring_over_field_element(polynomialring_element):
         p = compute(q**n)
         return p.mod(self).is_zero()
 
-        # # Step 1: check if f divides x^q^n - x. If not: reducible.
-        # pp = [F.zero() for i in range(1+q**n)]
-        # pp[-1] = F.one()
-        # pp[1]  = -F.one()
-        # p = P(pp)
-        # if not(p.mod(self).is_zero()):
-        #     return False
-
-        # # Step 2: the other checks
-        # one = P.one()
-        # h = [int(n/d) for d in [*set(pf.primefac(n))]]
-        # for nn in h:
-        #     pp = [F.zero() for i in range(1+q**nn)]
-        #     pp[-1] = F.one()
-        #     pp[1]  = -F.one()            
-        #     p = P(pp)
-        #     # if not(self.gcd(p)-one).is_zero():
-        #     if self.gcd(p) != one:
-        #         return False
-
-        # return True
-    
 
 class Galoisfield(field):
 
@@ -770,6 +817,12 @@ class Galoisfield(field):
     def __repr__(self):
         return self.__class__.__name__ + '(' + self.modulus.__repr__() + ')'
 
+    def latex(self):
+        return 'GF(' + str(self.char) + '^{' + str(self.deg) + '})'
+
+    def latex_details(self):
+        return self.p_ring.latex() + '/ \\left(' + str(self.modulus) + '\\right)' 
+    
     def normalise(self, v):  # v is an object of type self.p_ring, that is, a polynomial with coefficients in finite prime field
         return v.mod(self.modulus)
 
@@ -821,6 +874,18 @@ class Galoisfield_element(field_element):
         if not(isinstance(v, polynomialring_over_field_element)):
             w = polynomialring_over_field_element(v, G.p_ring)
         super().__init__(w, G)
+
+    def is_in_primefield(self):
+        return self.value.deg() == 0
+
+    def is_generator(self):
+        if self.is_zero():
+            return False
+        q1  = self.ring.cardinality - 1
+        for e in [int(q1/d) for d in [*set(pf.primefac(q1))]]:
+            if (self**e).is_one():
+                return False
+        return True
 
 
 class Galoisfield_iterator:
